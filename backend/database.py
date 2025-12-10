@@ -40,3 +40,4 @@ def get_db():
         yield db
     finally:
         db.close()
+#db connection yielded and closed after execute
