@@ -11,12 +11,19 @@ class Settings(BaseSettings):
 
     #Security
     SECRET_KEY: str
+
+    #Algorithm
     #ALGORITHM: str
+
+    #Token
     #ACCESS_TOKEN_EXPIRE_MINUTES: str
     ALLOWED_ORIGINS: str
 
+    #API keys
+    GROQ_API_KEY: str
+
     # class Config:
-    #     env_file = ".env" this doesnt work(only for pydantic v1)
+    #     env_file = ".env" this doesnt workanymore(only for pydantic v1)
 
     model_config = SettingsConfigDict(env_file=".env", extra="ignore")
 
