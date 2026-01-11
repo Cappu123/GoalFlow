@@ -7,15 +7,17 @@ from models import *
 from coreAI.AI_schemas import *
 from coreAI.generate_response import generate_response
 
-
 router = APIRouter(
     prefix="/chats",
-    tags=["chats"]
+    tags=["Chats"]
 )
 
 @router.post("/conversation")
     
 def conversation(userInput: CreateChat, db:Session = Depends(get_db)):
-    return generate_response(db, userInput)
-    
-    
+    res =  generate_response(
+        db,
+        userInput
+    )
+    return res
+
