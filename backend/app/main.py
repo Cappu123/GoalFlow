@@ -6,7 +6,7 @@ from pydantic import BaseModel
 from database import create_tables
 from config import settings
 
-from routers import chat, user
+from routers import chat, user, goal
 
 create_tables()
 
@@ -29,6 +29,7 @@ app.add_middleware(
 
 app.include_router(chat.router)
 app.include_router(user.router)
+app.include_router(goal.router)
 
 if __name__ =="__main__":
     uvicorn.run("main:app", host="0.0.0.0", port=8000, reload=True)

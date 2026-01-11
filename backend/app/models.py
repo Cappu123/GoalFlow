@@ -1,5 +1,6 @@
 import uuid
-from sqlalchemy import Column, Integer, JSON, String, ForeignKey, DateTime, UUID
+import enum
+from sqlalchemy import Column, Integer, JSON, String, ForeignKey, DateTime, UUID, Boolean, Enum
 from typing import Dict
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
@@ -25,7 +26,7 @@ class Chat(Base):
     created_at = Column(DateTime(timezone=True), server_default=func.now())
 
     messages = relationship("Message", back_populates="chat", cascade="all, delete-orphan")
-
+    goals = relationship("Goal", back_populates="chat", cascade="all, delete-orphan")
 
 class Message(Base):
     __tablename__ = "messages"
@@ -37,3 +38,31 @@ class Message(Base):
 
     chat = relationship("Chat", back_populates="messages")
     
+class GoalStatus(enum.Enum):
+    draft = "draft"
+    confirmed = "confirmed"
+
+class Goal(Base):
+    __tablename__ = "goals"
+    id = Column(String, primary_key=True, default=lambda: str(uuid.uuid4()))
+    chat_id = Column(String, ForeignKey("chats.id", ondelete="CASCADE"), nullable=False)
+    goal_title = Column(String)
+    goal_description = Column(String)
+    #status = Column(Enum(GoalStatus), nullable=False, default=GoalStatus.draft)
+    status = Column(Enum("draft", "active", "paused", "completed", name="goal_status", default="draft" ))
+    created_at = Column(DateTime(timezone=True), nullable=False, server_default=func.now())
+    start_date = Column(DateTime(timezone=True))
+
+    chat = relationship("Chat", back_populates="goals")
+    milestones = relationship("Milestone", back_populates="goal", cascade="all, delete-orphan")
+    
+
+class Milestone(Base):
+    __tablename__ = "milestones"
+    id = Column(String, primary_key=True, default=lambda: str(uuid.uuid4()))
+    goal_id = Column(String, ForeignKey("goals.id", ondelete="CASCADE"), nullable=False)
+    milestone_name = Column(String)
+    milestone_description = Column(String)
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+
+    goal = relationship("Goal", back_populates="milestones")
