@@ -59,12 +59,17 @@ INTENT PAYLOAD SCHEMAS
   "payload": {
     "goal_title": "string", 
     "goal_description": "string",
-    "time_frame" "string" #MUST contain the timeframe IN DAYS OR HOURS OR MINUTES OR SECONDS.
+    "time_frame": "string" #MUST contain the timeframe IN DAYS OR HOURS OR MINUTES OR SECONDS.
     "milestones": [
       {
         "milestone_name": "string"
         "milestone_description": "string",
         "time_frame": "string"
+        "steps": [{
+          "step_order": "integer"
+          "step_description": "string"
+          "time_frame": "string"
+      }]
       }
     ],
     "confirmation_message": "string",
