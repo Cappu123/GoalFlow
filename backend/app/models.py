@@ -24,8 +24,8 @@ class Chat(Base):
     id = Column(String, primary_key=True)
     #user_id = Column(String, ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
-
     messages = relationship("Message", back_populates="chat", cascade="all, delete-orphan")
+
     goals = relationship("Goal", back_populates="chat", cascade="all, delete-orphan")
 
 class Message(Base):
@@ -60,6 +60,7 @@ class Goal(Base):
 
     chat = relationship("Chat", back_populates="goals")
     milestones = relationship("Milestone", back_populates="goal", cascade="all, delete-orphan")
+    milestone_steps = relationship("MilestoneStep", back_populates="goal", cascade="all, delete-orphan")
     
 
 class Milestone(Base):
@@ -68,6 +69,7 @@ class Milestone(Base):
     goal_id = Column(String, ForeignKey("goals.id", ondelete="CASCADE"), nullable=False)
     milestone_name = Column(String)
     milestone_description = Column(String)
+    status = Column(Enum("draft", "active", "paused", "completed", name="goal_status", default="draft" ))
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     duration_value = Column(Integer, nullable=False)
     duration_unit = Column(String, nullable=False)
@@ -75,3 +77,22 @@ class Milestone(Base):
     due_date = Column(DateTime(timezone=True), nullable=True)
 
     goal = relationship("Goal", back_populates="milestones")
+    milestone_steps = relationship("MilestoneStep", back_populates="milestone", cascade="all, delete-orphan")
+
+class MilestoneStep(Base):
+    __tablename__ = "milestone_steps"
+    id = Column(String, primary_key=True, default=lambda: str(uuid.uuid4()))
+    chat_id = Column(String, ForeignKey("chats.id", ondelete="CASCADE"), nullable=False)
+    goal_id = Column(String, ForeignKey("goals.id", ondelete="CASCADE"), nullable=False)
+    milestone_id = Column(String, ForeignKey("milestones.id", ondelete="CASCADE"), nullable=False)
+    step_order = Column(Integer, nullable=False)
+    step_description = Column(String)
+    status = Column(Enum("draft", "active", "paused", "completed", name="goal_status", default="draft" ))
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+    duration_value = Column(Integer, nullable=False)
+    duration_unit = Column(String, nullable=False)
+    start_date = Column(DateTime(timezone=True), nullable=True)
+    due_date = Column(DateTime(timezone=True), nullable=True)
+
+    goal = relationship("Goal", back_populates="milestone_steps")
+    milestone = relationship("Milestone", back_populates="milestone_steps")

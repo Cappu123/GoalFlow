@@ -32,10 +32,13 @@ class Message(BaseModel):
 class CreateGoal(BaseModel):
     goal_drafted: ChatResponse
 
+class MilestoneSteps(BaseModel):
+    step: str
 class MilestoneResponse(BaseModel):
     id: str
     name: str
     description: str
+    steps: list[MilestoneSteps]
     duration: int
     duration_unit: str
 class GoalResponse(BaseModel):
@@ -49,9 +52,12 @@ class GoalResponse(BaseModel):
     duration_unit: str
     draft_milestone: list[MilestoneResponse]
 
-    model_config = {
-        "from_attributes": True  # Pydantic v2
-    }
+    
 
 class GoalsResponse(BaseModel):
     goals: list[GoalResponse]
+
+
+model_config = {
+        "from_attributes": True  # Pydantic v2
+    }

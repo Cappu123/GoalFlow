@@ -1,5 +1,6 @@
 import uuid
 from fastapi import APIRouter, Depends, HTTPException, Response, BackgroundTasks, Cookie, status
+from sqlalchemy.orm import joinedload
 from sqlalchemy.orm.session import Session
 from datetime import datetime, timedelta
 from database import get_db
@@ -23,10 +24,19 @@ def save_draft_goal(payload: ChatResponse, db:Session = Depends(get_db)):
     if payload.reply.intent != "create_goal":
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST,
                             detail="Please enter a valid goal draft") 
-    #Check if draft already saved
+   
     fingerprint = generate_fingerprint(payload.reply.payload)
-    existing = db.query(Goal).filter(Goal.draft_fingerprint == fingerprint).first()
 
+    #Check first: if goal is triggered already(started)
+    started = db.query(Goal).filter(Goal.saved_fingerprint == fingerprint)
+    if started:
+        return {
+            "status": "already started",
+            "message": "Goal already started"
+        }
+    
+    #Check 2nd if draft already saved
+    existing = db.query(Goal).filter(Goal.draft_fingerprint == fingerprint).first()
     if existing:
         return {
             "status": "already_exists",
@@ -143,6 +153,7 @@ def save_goal(payload: ChatResponse, db:Session = Depends(get_db)):
             goal_id = goal.id,
             milestone_name = m["milestone_name"],
             milestone_description = m["milestone_description"],
+            milestone_steps = m["milestone_steps"],
             duration_value = m_value,
             duration_unit = m_unit
                 
@@ -164,10 +175,22 @@ def save_goal(payload: ChatResponse, db:Session = Depends(get_db)):
 
 @router.post("/saved_goals")
 def saved_goals(db: Session = Depends(get_db)):
-    goals = db.query(Goal).filter(Goal.status == "active").all()
+    goals = db.query(Goal).options(joinedload(Goal.milestones)).filter(Goal.status == "active").order_by(Goal.created_at.desc()).all()
+    if not goals:
+        return {
+            "status": "Empty",
+            "message": "No saved goals found."
+        }
+   
     return goals
 
 @router.post("/saved_drafts")
 def saved_drafts(db: Session = Depends(get_db)):
-    drafts = db.query(Goal).filter(Goal.status == "draft").all()
+    drafts = db.query(Goal).options(joinedload(Goal.milestones)).filter(Goal.status == "draft").order_by(Goal.created_at.desc()).all()
+    if not drafts:
+        return {
+            "status": "Empty",
+            "message": "No saved drafts found."
+        }
+
     return drafts
