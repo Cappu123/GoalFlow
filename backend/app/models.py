@@ -55,18 +55,18 @@ class Goal(Base):
     duration_unit = Column(String, nullable=False)
     start_date = Column(DateTime(timezone=True), nullable=True)
     due_date = Column(DateTime(timezone=True), nullable=True)
-    draft_fingerprint = Column(String, unique=True, nullable=True)
+    draft_fingerprint = Column(String, nullable=True)
     saved_fingerprint = Column(String, unique=True, nullable=True)
 
     chat = relationship("Chat", back_populates="goals")
     milestones = relationship("Milestone", back_populates="goal", cascade="all, delete-orphan")
-    milestone_steps = relationship("MilestoneStep", back_populates="goal", cascade="all, delete-orphan")
-    
 
 class Milestone(Base):
     __tablename__ = "milestones"
     id = Column(String, primary_key=True, default=lambda: str(uuid.uuid4()))
+    chat_id = Column(String, ForeignKey("chats.id", ondelete="CASCADE"), nullable=False)
     goal_id = Column(String, ForeignKey("goals.id", ondelete="CASCADE"), nullable=False)
+    milestone_order = Column(Integer, nullable=False)
     milestone_name = Column(String)
     milestone_description = Column(String)
     status = Column(Enum("draft", "active", "paused", "completed", name="goal_status", default="draft" ))
@@ -94,5 +94,4 @@ class MilestoneStep(Base):
     start_date = Column(DateTime(timezone=True), nullable=True)
     due_date = Column(DateTime(timezone=True), nullable=True)
 
-    goal = relationship("Goal", back_populates="milestone_steps")
     milestone = relationship("Milestone", back_populates="milestone_steps")
