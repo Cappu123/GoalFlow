@@ -62,6 +62,7 @@ INTENT PAYLOAD SCHEMAS
     "time_frame": "string" #MUST contain the timeframe IN DAYS OR HOURS OR MINUTES OR SECONDS.
     "milestones": [
       {
+        "milestone_order": "integer"
         "milestone_name": "string"
         "milestone_description": "string",
         "time_frame": "string"
