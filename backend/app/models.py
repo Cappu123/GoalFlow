@@ -1,5 +1,6 @@
 import uuid
 import enum
+import sqlalchemy as sa
 from sqlalchemy import Column, Integer, JSON, String, ForeignKey, DateTime, UUID, Boolean, Enum
 from typing import Dict
 from sqlalchemy.orm import relationship
@@ -11,7 +12,7 @@ from database import Base
 class User(Base):
     __tablename__ = "users"
     
-    id = Column(String, primary_key=True, default = lambda: str(uuid.uuid4()))
+    id = Column(String, primary_key=True, server_default=sa.text("gen_random_uuid()"))
     user_name = Column(String, nullable=True)
     email = Column(String, nullable=False, unique=True)
     hashed_password = Column(String, nullable=False)
@@ -21,7 +22,7 @@ class User(Base):
 class Chat(Base):
     __tablename__ = "chats"
 
-    id = Column(String, primary_key=True)
+    id = Column(String, primary_key=True, server_default=sa.text("gen_random_uuid()"))
     #user_id = Column(String, ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     messages = relationship("Message", back_populates="chat", cascade="all, delete-orphan")
@@ -30,7 +31,7 @@ class Chat(Base):
 
 class Message(Base):
     __tablename__ = "messages"
-    id = Column(String, primary_key=True, default=lambda: str(uuid.uuid4()))
+    id = Column(String, primary_key=True, server_default=sa.text("gen_random_uuid()"))
     chat_id = Column(String, ForeignKey("chats.id", ondelete="CASCADE"), nullable=False)
     role = Column(String, nullable=False)
     content = Column(JSON, nullable=False)
@@ -45,7 +46,7 @@ class Message(Base):
 
 class Goal(Base):
     __tablename__ = "goals"
-    id = Column(String, primary_key=True, default=lambda: str(uuid.uuid4()))
+    id = Column(String, primary_key=True, server_default=sa.text("gen_random_uuid()"))
     chat_id = Column(String, ForeignKey("chats.id", ondelete="CASCADE"), nullable=False)
     goal_title = Column(String)
     goal_description = Column(String)
@@ -63,7 +64,7 @@ class Goal(Base):
 
 class Milestone(Base):
     __tablename__ = "milestones"
-    id = Column(String, primary_key=True, default=lambda: str(uuid.uuid4()))
+    id = Column(String, primary_key=True, server_default=sa.text("gen_random_uuid()"))
     chat_id = Column(String, ForeignKey("chats.id", ondelete="CASCADE"), nullable=False)
     goal_id = Column(String, ForeignKey("goals.id", ondelete="CASCADE"), nullable=False)
     milestone_order = Column(Integer, nullable=False)
@@ -81,7 +82,7 @@ class Milestone(Base):
 
 class MilestoneStep(Base):
     __tablename__ = "milestone_steps"
-    id = Column(String, primary_key=True, default=lambda: str(uuid.uuid4()))
+    id = Column(String, primary_key=True, server_default=sa.text("gen_random_uuid()"))
     chat_id = Column(String, ForeignKey("chats.id", ondelete="CASCADE"), nullable=False)
     goal_id = Column(String, ForeignKey("goals.id", ondelete="CASCADE"), nullable=False)
     milestone_id = Column(String, ForeignKey("milestones.id", ondelete="CASCADE"), nullable=False)

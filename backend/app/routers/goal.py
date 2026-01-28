@@ -15,7 +15,7 @@ router = APIRouter(
     tags=["Goals"]
 )
 
-@router.post("/save_draft_goal")
+@router.post("/save_draft_goal", status_code=status.HTTP_201_CREATED)
 def save_draft_goal(payload: ChatResponse, db:Session = Depends(get_db)):
     if payload.reply.intent != "create_goal":
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST,
@@ -26,18 +26,14 @@ def save_draft_goal(payload: ChatResponse, db:Session = Depends(get_db)):
     #Check first: if goal is triggered already(started)
     started = db.query(Goal).filter(Goal.saved_fingerprint == fingerprint).first()
     if started:
-        return {
-            "status": "already started",
-            "message": "Goal already started"
-        }
+        raise HTTPException(status_code=status.HTTP_409_CONFLICT,
+                            detail="Goal already started, cannot save as draft.")
     
     #Check 2nd if draft already saved
     existing = db.query(Goal).filter(Goal.draft_fingerprint == fingerprint).first()
     if existing:
-        return {
-            "status": "already_exists",
-            "message": "Draft goal already saved."
-        }
+        raise HTTPException(status_code=status.HTTP_409_CONFLICT,
+                            detail="Draft goal already saved.")
 
 
     #Since time frame is human langueage, need to parse it.
@@ -111,7 +107,7 @@ def save_draft_goal(payload: ChatResponse, db:Session = Depends(get_db)):
     }
 
 
-@router.post("/save_goal")
+@router.post("/save_goal", status_code=status.HTTP_201_CREATED)
 def save_goal(payload: ChatResponse, 
               db:Session = Depends(get_db)):
     print(payload.chat_id)
@@ -124,10 +120,8 @@ def save_goal(payload: ChatResponse,
     existing = db.query(Goal).filter(Goal.saved_fingerprint == fingerprint).first()
 
     if existing:
-        return {
-            "status": "already_exists",
-            "message": "Goal already saved."
-        }
+        raise HTTPException(status_code=status.HTTP_409_CONFLICT,
+                            detail="goal already saved.")
     #if drafted
     goal = db.query(Goal).filter(Goal.draft_fingerprint == fingerprint).first()
     if not goal:
@@ -234,10 +228,12 @@ def save_goal(payload: ChatResponse,
         "goal_id": goal.id,
         "status": "activated",
         "start_date": goal.start_date,
+        "due_date": goal.due_date,
         "message": "Goal activated successfully."
         }
 
-@router.post("/saved_goals", response_model=list[GoalFinal])
+
+@router.get("/saved_goals", response_model=list[GoalFinal])
 def saved_goals(db: Session = Depends(get_db)):
     #goals = db.query(Goal).options(joinedload(Goal.milestones).joinedload(Milestone.milestone_steps)).filter(Goal.status == "active").order_by(Goal.created_at.desc()).all()
     goals = db.query(Goal).join(Goal.milestones).join(Milestone.milestone_steps).options(contains_eager(Goal.milestones).contains_eager(Milestone.milestone_steps)).filter(Goal.status == "active").order_by(Goal.created_at.desc(), Milestone.start_date.asc(), MilestoneStep.step_order.asc()).all()
@@ -247,7 +243,7 @@ def saved_goals(db: Session = Depends(get_db)):
     return goals
 
 
-@router.post("/draft_goals", response_model=list[GoalDraft])
+@router.get("/draft_goals", response_model=list[GoalDraft])
 def saved_drafts(db: Session = Depends(get_db)):
     #drafts = db.query(Goal).options(joinedload(Goal.milestones).joinedload(Milestone.milestone_steps)).filter(Goal.status == "draft").order_by(Goal.created_at.desc()).all()
     drafts = db.query(Goal).join(Goal.milestones).join(Milestone.milestone_steps).options(contains_eager(Goal.milestones).contains_eager(Milestone.milestone_steps)).filter(Goal.status == "draft").order_by(Goal.created_at.desc(), Milestone.start_date.asc(), MilestoneStep.step_order.asc()).all()
@@ -255,3 +251,19 @@ def saved_drafts(db: Session = Depends(get_db)):
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
                             detail="No saved drafts found.")
     return drafts
+
+
+@router.put("/update_goal/{goal_id}", status_code=status.HTTP_200_OK)
+def update_goal_status(goal_id: str, updated_goal: Testt, db: Session = Depends(get_db)):
+    goal = db.query(Goal).filter(Goal.id == goal_id).first()
+    if not goal:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
+                            detail="Goal not found.")
+    update_data = updated_goal.model_dump(exclude_unset=True)
+    for key, value in update_data.items():
+        print (update_data)
+        setattr(goal, key, value)
+    db.add(goal)
+    db.commit()
+    db.refresh(goal)
+    return goal

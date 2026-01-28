@@ -14,7 +14,6 @@ class ORMBase(BaseModel):
     def serialize(self, value: datetime):
         return date_formatter(value)
     
-
 class CreateUser(ORMBase):
     email: str
     username: Optional[str]
@@ -22,9 +21,6 @@ class CreateUser(ORMBase):
 class ReturnUser(ORMBase):
     id: str
     email: str
-
-
-
 
 #Chats Schema
 class CreateChat(ORMBase):
@@ -35,52 +31,8 @@ class ChatResponse(ORMBase):
     chat_id: str
     reply: LLMResponse
 
-class Message(ORMBase):
-    role: Literal["system", "user", "assistant"]
-    content: str | dict
-
-
-class CreateGoal(ORMBase):
-    goal_drafted: ChatResponse
-
-
-
-
-
-
-
-
-
-
-class MilestoneSteps(ORMBase):
-    step: str
-class MilestoneResponse(ORMBase):
-    id: str
-    name: str
-    description: str
-    steps: list[MilestoneSteps]
-    duration: int
-    duration_unit: str
-class GoalResponse(ORMBase):
-    id: str
-    chat_id: str
-    title: str
-    description: str
-    status: str
-    created_at: datetime | None
-    duration: int
-    duration_unit: str
-    draft_milestone: list[MilestoneResponse]  
-
-class GoalsResponse(ORMBase):
-    goals: list[GoalResponse]
-
-
-
-
-
-
-
+class Testt(ORMBase):
+    any
 
 class StepDraft(ORMBase):
     step_order: int
@@ -123,15 +75,26 @@ class GoalFinal(GoalDraft):
     start_date: datetime
     due_date: datetime
 
-# class GoalDraftFinal(ORMBase):
-#     goals: list[GoalDraft]
-
-# class GoalSavedFinal(ORMBase):
-#     goals: list[GoalFinal]
-
 class NotFound(ORMBase):
     status: str
     message: str
+
+class StepUpdate(ORMBase):
+    step_progress: Optional[Literal["not_started", "in_progress", "completed"]] = None
+    start_date: Optional[datetime] = None
+    due_date: Optional[datetime] = None
+
+class MilestoneUpdate(ORMBase):
+    milestone_progress: Optional[Literal["not_started", "in_progress", "completed"]] = None
+    start_date: Optional[datetime] = None
+    due_date: Optional[datetime] = None
+
+
+class GoalUpdate(ORMBase):
+    goal_progress: Optional[Literal["not_started", "in_progress", "completed"]] = None
+    start_date: Optional[datetime] = None
+    due_date: Optional[datetime] = None
+
     
 model_config = {
         "from_attributes": True  # Pydantic v2

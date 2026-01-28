@@ -20,6 +20,11 @@ groq_client = Groq(api_key=settings.GROQ_API_KEY)
 
 def generate_response(db: Session, message: CreateChat):
 
+    if not groq_client:
+        return {
+            "message": "Groq client not found"
+        }
+
     if message.chat_id:
         chat = db.query(Chat).filter(Chat.id == message.chat_id).first()
         if not chat:
