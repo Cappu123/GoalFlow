@@ -8,8 +8,6 @@ from utils import date_formatter
 #users schema
 
 class ORMBase(BaseModel):
-    model_config = {"from_attributes": True}
-
     @field_serializer("created_at", "start_date", "due_date", "updated_at", when_used="json", check_fields=False)
     def serialize(self, value: datetime):
         return date_formatter(value)
@@ -34,7 +32,10 @@ class ChatResponse(ORMBase):
 class Testt(ORMBase):
     any
 
+
+# Goals Schema
 class StepDraft(ORMBase):
+    id: str
     step_order: int
     step_description: str
     created_at: datetime
@@ -47,6 +48,7 @@ class StepFinal(StepDraft):
     due_date: datetime
 
 class MilestoneDraft(ORMBase):
+    id: str
     milestone_order: int
     milestone_name: str
     milestone_description: str
@@ -62,6 +64,7 @@ class MilestoneFinal(MilestoneDraft):
     due_date: datetime  
 
 class GoalDraft(ORMBase):
+    id: str
     goal_title: str
     goal_description: str
     created_at: datetime
@@ -79,26 +82,52 @@ class NotFound(ORMBase):
     status: str
     message: str
 
-class StepUpdate(ORMBase):
-    step_progress: Optional[Literal["not_started", "in_progress", "completed"]] = None
-    start_date: Optional[datetime] = None
-    due_date: Optional[datetime] = None
-
-class MilestoneUpdate(ORMBase):
-    milestone_progress: Optional[Literal["not_started", "in_progress", "completed"]] = None
-    start_date: Optional[datetime] = None
-    due_date: Optional[datetime] = None
+class SimpleGoal(ORMBase):
+    goal_title: str
+    status: str
 
 
-class GoalUpdate(ORMBase):
-    goal_progress: Optional[Literal["not_started", "in_progress", "completed"]] = None
-    start_date: Optional[datetime] = None
-    due_date: Optional[datetime] = None
-
-    
 model_config = {
         "from_attributes": True  # Pydantic v2
     }
+
+# Update Schemas
+class StepsUpdate(ORMBase):
+    step_order: Optional[int] = None
+    step_description: Optional[str] = None
+    status: Optional[str] = None
+    duration_value: Optional[int] = None
+    duration_unit: Optional[str] = None
+    start_date: Optional[datetime] = None
+    due_date: Optional[datetime] = None
+
+
+class MilestoneUpdate(ORMBase):
+    milestone_order: Optional[int] = None
+    milestone_name: Optional[str] = None
+    milestone_description: Optional[str] = None
+    status: Optional[str] = None
+    duration_value: Optional[int] = None
+    duration_unit: Optional[str] = None
+    start_date: Optional[datetime] = None
+    due_date: Optional[datetime] = None
+    
+
+
+class GoalUpdate(ORMBase):
+    goal_title: str
+    goal_description: Optional[str] = None
+    status: Optional[str] = None
+    duration_value: Optional[int] = None
+    duration_unit: Optional[str] = None
+    start_date: Optional[datetime] = None
+    due_date: Optional[datetime] = None 
+    
+
+
+
+    
+
 
 
 
