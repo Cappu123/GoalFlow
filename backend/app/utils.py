@@ -9,20 +9,20 @@ def parse_timeframe(timeframe: str) -> tuple[int, str]:
 
 #A function to help check whether if goal is already saved in drafts or actives
 def generate_fingerprint(payload: dict) -> str:
-    canonical = {
-        "goal_title": payload["goal_title"],
-        "goal_description": payload["goal_description"],
-        "time_frame": payload["time_frame"],
-        "milestones": [
-            {
-                "name": m["milestone_name"],
-                "description": m["milestone_description"]
-            }
-            for m in payload["milestones"]
-        ]
-    }
+    # canonical = {
+    #     "goal_title": payload.get("goal_title"),
+    #     "goal_description": payload.get("goal_description"),
+    #     "time_frame": payload.get("time_frame"),
+    #     "milestones": [
+    #         {
+    #             "name": m.get("milestone_name"),
+    #             "description": m.get("milestone_description")
+    #         }
+    #         for m in payload.get("milestones", [])
+    #     ]
+    # }
 
-    normalized = json.dumps(canonical, sort_keys=True)
+    normalized = json.dumps(payload, sort_keys=True)
     return hashlib.sha256(normalized.encode()).hexdigest()
 
 def date_formatter(date: datetime | None) -> str:
