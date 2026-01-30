@@ -15,7 +15,7 @@ router = APIRouter(
     tags=["Goals"]
 )
 
-@router.post("/save_draft_goal", status_code=status.HTTP_201_CREATED)
+@router.post("/save_draft_goal", status_code=status.HTTP_201_CREATED, response_model=GoalDraft)
 def save_draft_goal(payload: ChatResponse, db:Session = Depends(get_db)):
     if payload.reply.intent != "create_goal":
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST,
@@ -107,7 +107,7 @@ def save_draft_goal(payload: ChatResponse, db:Session = Depends(get_db)):
     }
 
 
-@router.post("/save_goal", status_code=status.HTTP_201_CREATED)
+@router.post("/save_goal", status_code=status.HTTP_201_CREATED, response_model=GoalFinal)
 def save_goal(payload: ChatResponse, 
               db:Session = Depends(get_db)):
     print(payload.chat_id)
@@ -253,17 +253,47 @@ def saved_drafts(db: Session = Depends(get_db)):
     return drafts
 
 
-@router.put("/update_goal/{goal_id}", status_code=status.HTTP_200_OK)
-def update_goal_status(goal_id: str, updated_goal: Testt, db: Session = Depends(get_db)):
+@router.put("/update_goal/{goal_id}", status_code=status.HTTP_200_OK, response_model = Optional[GoalDraft | GoalFinal])
+def update_goal_status(goal_id: str, updated_goal: GoalUpdate, db: Session = Depends(get_db)):
     goal = db.query(Goal).filter(Goal.id == goal_id).first()
     if not goal:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
                             detail="Goal not found.")
     update_data = updated_goal.model_dump(exclude_unset=True)
     for key, value in update_data.items():
-        print (update_data)
         setattr(goal, key, value)
-    db.add(goal)
     db.commit()
-    db.refresh(goal)
+    db.refresh(goal)    
+
     return goal
+
+@router.put("/update_milestone/{milestone_id}", status_code=status.HTTP_200_OK, response_model = Optional[MilestoneDraft | MilestoneFinal])
+def update_milestone_status(milestone_id: str, updated_milestone: MilestoneUpdate, db: Session = Depends(get_db)):  
+    milestone = db.query(Milestone).filter(Milestone.id == milestone_id).first()
+    if not milestone:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
+                            detail="Milestone not found.")
+    update_data = updated_milestone.model_dump(exclude_unset=True)
+    for key, value in update_data.items():
+        setattr(milestone, key, value) 
+
+    db.commit()
+    db.refresh(milestone)   
+
+    return milestone
+
+
+@router.put("/update_step/{step_id}", status_code=status.HTTP_200_OK, response_model = Optional[StepsUpdate])
+def update_step_status(step_id: str, updated_step: StepsUpdate, db: Session = Depends(get_db)):  
+    step = db.query(MilestoneStep).filter(MilestoneStep.id == step_id).first()
+    if not step:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
+                            detail="Step not found.")
+    update_data = updated_step.model_dump(exclude_unset=True)
+    for key, value in update_data.items():
+        setattr(step, key, value) 
+
+    db.commit()
+    db.refresh(step)   
+
+    return step
